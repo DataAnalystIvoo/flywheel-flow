@@ -103,11 +103,11 @@ export const FrictionAnalysis = ({ attract, engage, delight }: FrictionAnalysisP
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case "high":
-        return "bg-danger/10 border-danger text-danger-foreground";
+        return "bg-danger/10 border-danger [&_*]:text-foreground";
       case "medium":
-        return "bg-warning/10 border-warning text-warning-foreground";
+        return "bg-warning/10 border-warning [&_*]:text-foreground";
       case "low":
-        return "bg-success/10 border-success text-success-foreground";
+        return "bg-success/10 border-success [&_*]:text-foreground";
       default:
         return "";
     }
