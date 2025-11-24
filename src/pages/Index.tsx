@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { DateRange } from "react-day-picker";
-import { TrendingUp, Users, Heart } from "lucide-react";
+import { TrendingUp, Users, Heart, Save } from "lucide-react";
 import { DateRangeSelector } from "@/components/DateRangeSelector";
 import { FlywheelVisualization } from "@/components/FlywheelVisualization";
 import { MetricInput } from "@/components/MetricInput";
@@ -8,7 +8,16 @@ import { FrictionAnalysis } from "@/components/FrictionAnalysis";
 import { ConversionChart } from "@/components/ConversionChart";
 import { PeriodComparison } from "@/components/PeriodComparison";
 import { ComparisonChart } from "@/components/ComparisonChart";
+import { SavedAnalyses } from "@/components/SavedAnalyses";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { supabase } from "@/integrations/supabase/client";
+import { Database } from "@/integrations/supabase/types";
+import { toast } from "sonner";
+import { format } from "date-fns";
+
+type FlywheelAnalysis = Database["public"]["Tables"]["flywheel_analyses"]["Row"];
 
 const Index = () => {
   // Current period
@@ -16,12 +25,64 @@ const Index = () => {
   const [currentAttract, setCurrentAttract] = useState(0);
   const [currentEngage, setCurrentEngage] = useState(0);
   const [currentDelight, setCurrentDelight] = useState(0);
+  const [currentLabel, setCurrentLabel] = useState("");
 
   // Previous period for comparison
   const [previousDateRange, setPreviousDateRange] = useState<DateRange | undefined>();
   const [previousAttract, setPreviousAttract] = useState(0);
   const [previousEngage, setPreviousEngage] = useState(0);
   const [previousDelight, setPreviousDelight] = useState(0);
+
+  // Trigger for refreshing saved analyses
+  const [refreshAnalyses, setRefreshAnalyses] = useState(0);
+
+  const handleSaveAnalysis = async () => {
+    if (!currentDateRange?.from || !currentDateRange?.to) {
+      toast.error("Selecciona un rango de fechas");
+      return;
+    }
+
+    if (!currentLabel.trim()) {
+      toast.error("Ingresa un nombre para el análisis");
+      return;
+    }
+
+    if (currentAttract === 0 && currentEngage === 0 && currentDelight === 0) {
+      toast.error("Ingresa al menos una métrica");
+      return;
+    }
+
+    const { error } = await supabase.from("flywheel_analyses").insert({
+      period_label: currentLabel,
+      period_start: format(currentDateRange.from, "yyyy-MM-dd"),
+      period_end: format(currentDateRange.to, "yyyy-MM-dd"),
+      attract: currentAttract,
+      engage: currentEngage,
+      delight: currentDelight,
+      user_id: null, // Anonymous for now
+    });
+
+    if (error) {
+      toast.error("Error al guardar análisis");
+      console.error(error);
+    } else {
+      toast.success("Análisis guardado exitosamente");
+      setCurrentLabel("");
+      setRefreshAnalyses((prev) => prev + 1);
+    }
+  };
+
+  const handleLoadAnalysis = (analysis: FlywheelAnalysis) => {
+    setCurrentDateRange({
+      from: new Date(analysis.period_start),
+      to: new Date(analysis.period_end),
+    });
+    setCurrentAttract(analysis.attract);
+    setCurrentEngage(analysis.engage);
+    setCurrentDelight(analysis.delight);
+    setCurrentLabel(analysis.period_label);
+    toast.success(`Análisis "${analysis.period_label}" cargado`);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -46,13 +107,29 @@ const Index = () => {
 
           {/* Current Period Tab */}
           <TabsContent value="current" className="space-y-8">
-            {/* Date Range Selector */}
-            <div className="max-w-md">
-              <label className="text-sm font-medium mb-2 block">Período Actual</label>
-              <DateRangeSelector
-                dateRange={currentDateRange}
-                onDateRangeChange={setCurrentDateRange}
-              />
+            {/* Date Range Selector and Save */}
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <label className="text-sm font-medium mb-2 block">Período Actual</label>
+                <DateRangeSelector
+                  dateRange={currentDateRange}
+                  onDateRangeChange={setCurrentDateRange}
+                />
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Nombre del Análisis</label>
+                  <Input
+                    placeholder="ej: Q1 2024, Enero, Campaña Verano..."
+                    value={currentLabel}
+                    onChange={(e) => setCurrentLabel(e.target.value)}
+                  />
+                </div>
+                <Button onClick={handleSaveAnalysis} className="w-full">
+                  <Save className="w-4 h-4 mr-2" />
+                  Guardar Análisis
+                </Button>
+              </div>
             </div>
 
             {/* Main Grid */}
@@ -116,6 +193,12 @@ const Index = () => {
                 />
               </div>
             </div>
+
+            {/* Saved Analyses */}
+            <SavedAnalyses
+              onLoadAnalysis={handleLoadAnalysis}
+              refreshTrigger={refreshAnalyses}
+            />
           </TabsContent>
 
           {/* Comparison Tab */}
