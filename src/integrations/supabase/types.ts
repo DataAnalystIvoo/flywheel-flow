@@ -14,7 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      flywheel_analyses: {
+        Row: {
+          attract: number
+          created_at: string
+          delight: number
+          engage: number
+          id: string
+          period_end: string
+          period_label: string
+          period_start: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          attract?: number
+          created_at?: string
+          delight?: number
+          engage?: number
+          id?: string
+          period_end: string
+          period_label: string
+          period_start: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          attract?: number
+          created_at?: string
+          delight?: number
+          engage?: number
+          id?: string
+          period_end?: string
+          period_label?: string
+          period_start?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
