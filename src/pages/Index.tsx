@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { DateRange } from "react-day-picker";
-import { TrendingUp, Users, Heart, Save } from "lucide-react";
+import { TrendingUp, Users, Heart, Save, LogOut } from "lucide-react";
 import { DateRangeSelector } from "@/components/DateRangeSelector";
 import { FlywheelVisualization } from "@/components/FlywheelVisualization";
 import { MetricInput } from "@/components/MetricInput";
@@ -16,10 +17,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { Database } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import type { User } from "@supabase/supabase-js";
 
 type FlywheelAnalysis = Database["public"]["Tables"]["flywheel_analyses"]["Row"];
 
 const Index = () => {
+  const navigate = useNavigate();
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
   // Current period
   const [currentDateRange, setCurrentDateRange] = useState<DateRange | undefined>();
   const [currentAttract, setCurrentAttract] = useState(0);
@@ -36,7 +41,41 @@ const Index = () => {
   // Trigger for refreshing saved analyses
   const [refreshAnalyses, setRefreshAnalyses] = useState(0);
 
+  useEffect(() => {
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user ?? null);
+        setLoading(false);
+      }
+    );
+
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate("/auth");
+    }
+  }, [user, loading, navigate]);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    toast.success("Sesión cerrada");
+    navigate("/auth");
+  };
+
   const handleSaveAnalysis = async () => {
+    if (!user) {
+      toast.error("Debes iniciar sesión para guardar análisis");
+      return;
+    }
     if (!currentDateRange?.from || !currentDateRange?.to) {
       toast.error("Selecciona un rango de fechas");
       return;
@@ -59,7 +98,7 @@ const Index = () => {
       attract: currentAttract,
       engage: currentEngage,
       delight: currentDelight,
-      user_id: null, // Anonymous for now
+      user_id: user.id,
     });
 
     if (error) {
@@ -84,17 +123,37 @@ const Index = () => {
     toast.success(`Análisis "${analysis.period_label}" cargado`);
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-muted-foreground">Cargando...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b border-border bg-card shadow-soft">
         <div className="container mx-auto px-6 py-6">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            Análisis de Fricción del Flywheel
-          </h1>
-          <p className="text-muted-foreground mt-2">
-            Identifica y optimiza los puntos críticos de tu embudo de marketing
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                Análisis de Fricción del Flywheel
+              </h1>
+              <p className="text-muted-foreground mt-2">
+                Identifica y optimiza los puntos críticos de tu embudo de marketing
+              </p>
+            </div>
+            <Button onClick={handleLogout} variant="outline" size="sm">
+              <LogOut className="w-4 h-4 mr-2" />
+              Cerrar Sesión
+            </Button>
+          </div>
         </div>
       </header>
 
