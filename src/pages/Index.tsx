@@ -4,6 +4,7 @@ import { DateRange } from "react-day-picker";
 import { TrendingUp, Users, Heart, Save, LogOut } from "lucide-react";
 import { DateRangeSelector } from "@/components/DateRangeSelector";
 import { FlywheelVisualization } from "@/components/FlywheelVisualization";
+import { FlywheelExplanation } from "@/components/FlywheelExplanation";
 import { MetricInput } from "@/components/MetricInput";
 import { FrictionAnalysis } from "@/components/FrictionAnalysis";
 import { ConversionChart } from "@/components/ConversionChart";
@@ -158,6 +159,9 @@ const Index = () => {
       </header>
 
       <div className="container mx-auto px-6 py-8">
+        {/* Flywheel Explanation */}
+        <FlywheelExplanation />
+
         <Tabs defaultValue="current" className="space-y-8">
           <TabsList className="grid w-full max-w-md grid-cols-2">
             <TabsTrigger value="current">Período Actual</TabsTrigger>
