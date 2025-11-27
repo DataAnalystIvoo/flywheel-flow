@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { DateRange } from "react-day-picker";
 import { TrendingUp, Users, Heart, Save, LogOut } from "lucide-react";
@@ -12,6 +12,7 @@ import { PeriodComparison } from "@/components/PeriodComparison";
 import { ComparisonChart } from "@/components/ComparisonChart";
 import { SavedAnalyses } from "@/components/SavedAnalyses";
 import { SavedAnalysisSelector } from "@/components/SavedAnalysisSelector";
+import { ExportComparison } from "@/components/ExportComparison";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,6 +43,9 @@ const Index = () => {
 
   // Trigger for refreshing saved analyses
   const [refreshAnalyses, setRefreshAnalyses] = useState(0);
+
+  // Ref for export
+  const comparisonRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Set up auth state listener
@@ -267,6 +271,11 @@ const Index = () => {
 
           {/* Comparison Tab */}
           <TabsContent value="comparison" className="space-y-8">
+            <div className="flex justify-end">
+              <ExportComparison targetRef={comparisonRef} />
+            </div>
+            
+            <div ref={comparisonRef} className="space-y-8 p-4 rounded-lg">
             {/* Selection Grid */}
             <div className="grid lg:grid-cols-2 gap-8">
               {/* Previous Campaign Selector */}
@@ -341,6 +350,7 @@ const Index = () => {
                 previousEngage={previousEngage}
                 previousDelight={previousDelight}
               />
+            </div>
             </div>
           </TabsContent>
         </Tabs>
