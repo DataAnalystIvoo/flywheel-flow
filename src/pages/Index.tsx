@@ -11,6 +11,7 @@ import { ConversionChart } from "@/components/ConversionChart";
 import { PeriodComparison } from "@/components/PeriodComparison";
 import { ComparisonChart } from "@/components/ComparisonChart";
 import { SavedAnalyses } from "@/components/SavedAnalyses";
+import { SavedAnalysisSelector } from "@/components/SavedAnalysisSelector";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,8 +34,8 @@ const Index = () => {
   const [currentDelight, setCurrentDelight] = useState(0);
   const [currentLabel, setCurrentLabel] = useState("");
 
-  // Previous period for comparison
-  const [previousDateRange, setPreviousDateRange] = useState<DateRange | undefined>();
+  // Previous period for comparison (from saved analysis)
+  const [selectedPreviousAnalysisId, setSelectedPreviousAnalysisId] = useState<string | undefined>();
   const [previousAttract, setPreviousAttract] = useState(0);
   const [previousEngage, setPreviousEngage] = useState(0);
   const [previousDelight, setPreviousDelight] = useState(0);
@@ -266,61 +267,41 @@ const Index = () => {
 
           {/* Comparison Tab */}
           <TabsContent value="comparison" className="space-y-8">
-            {/* Date Range Selectors */}
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <label className="text-sm font-medium mb-2 block">Período Anterior</label>
-                <DateRangeSelector
-                  dateRange={previousDateRange}
-                  onDateRangeChange={setPreviousDateRange}
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-2 block">Período Actual</label>
-                <DateRangeSelector
-                  dateRange={currentDateRange}
-                  onDateRangeChange={setCurrentDateRange}
-                />
-              </div>
-            </div>
-
-            {/* Metrics Input Grid */}
+            {/* Selection Grid */}
             <div className="grid lg:grid-cols-2 gap-8">
-              {/* Previous Period */}
+              {/* Previous Campaign Selector */}
               <div>
-                <h2 className="text-2xl font-semibold mb-6">Período Anterior</h2>
-                <div className="space-y-4">
-                  <MetricInput
-                    label="Attract Anterior"
-                    value={previousAttract}
-                    onChange={setPreviousAttract}
-                    icon={<TrendingUp className="w-6 h-6" />}
-                    color="hsl(210 100% 50%)"
-                    description="Visitantes del período anterior"
-                  />
-                  <MetricInput
-                    label="Engage Anterior"
-                    value={previousEngage}
-                    onChange={setPreviousEngage}
-                    icon={<Users className="w-6 h-6" />}
-                    color="hsl(38 92% 50%)"
-                    description="Engagement del período anterior"
-                  />
-                  <MetricInput
-                    label="Delight Anterior"
-                    value={previousDelight}
-                    onChange={setPreviousDelight}
-                    icon={<Heart className="w-6 h-6" />}
-                    color="hsl(142 76% 45%)"
-                    description="Satisfacción del período anterior"
-                  />
-                </div>
+                <h2 className="text-2xl font-semibold mb-6">Campaña Anterior</h2>
+                <SavedAnalysisSelector
+                  label="Seleccionar campaña guardada"
+                  selectedId={selectedPreviousAnalysisId}
+                  onSelect={(analysis) => {
+                    if (analysis) {
+                      setSelectedPreviousAnalysisId(analysis.id);
+                      setPreviousAttract(analysis.attract);
+                      setPreviousEngage(analysis.engage);
+                      setPreviousDelight(analysis.delight);
+                    } else {
+                      setSelectedPreviousAnalysisId(undefined);
+                      setPreviousAttract(0);
+                      setPreviousEngage(0);
+                      setPreviousDelight(0);
+                    }
+                  }}
+                />
               </div>
 
               {/* Current Period */}
               <div>
                 <h2 className="text-2xl font-semibold mb-6">Período Actual</h2>
                 <div className="space-y-4">
+                  <div className="mb-4">
+                    <label className="text-sm font-medium mb-2 block">Rango de fechas</label>
+                    <DateRangeSelector
+                      dateRange={currentDateRange}
+                      onDateRangeChange={setCurrentDateRange}
+                    />
+                  </div>
                   <MetricInput
                     label="Attract Actual"
                     value={currentAttract}
