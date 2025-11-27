@@ -61,7 +61,7 @@ export const ComparisonChart = ({
             }}
           />
           <Legend />
-          <Bar dataKey="Anterior" fill="hsl(var(--muted))" radius={[8, 8, 0, 0]} />
+          <Bar dataKey="Anterior" fill="hsl(38 92% 50%)" radius={[8, 8, 0, 0]} />
           <Bar dataKey="Actual" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
