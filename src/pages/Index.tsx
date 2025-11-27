@@ -291,17 +291,10 @@ const Index = () => {
                 />
               </div>
 
-              {/* Current Period */}
+              {/* Current Campaign */}
               <div>
-                <h2 className="text-2xl font-semibold mb-6">Período Actual</h2>
+                <h2 className="text-2xl font-semibold mb-6">Campaña Actual</h2>
                 <div className="space-y-4">
-                  <div className="mb-4">
-                    <label className="text-sm font-medium mb-2 block">Rango de fechas</label>
-                    <DateRangeSelector
-                      dateRange={currentDateRange}
-                      onDateRangeChange={setCurrentDateRange}
-                    />
-                  </div>
                   <MetricInput
                     label="Attract Actual"
                     value={currentAttract}
