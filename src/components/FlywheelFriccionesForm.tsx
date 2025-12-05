@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus } from "lucide-react";
 import { Friccion, ETAPAS_FLYWHEEL } from "@/types/friccion";
+import { analizarFriccion } from "@/utils/analizadorFricciones";
 
 interface FlywheelFriccionesFormProps {
   onAddFriccion: (friccion: Friccion) => void;
@@ -19,10 +20,13 @@ const FlywheelFriccionesForm = ({ onAddFriccion }: FlywheelFriccionesFormProps) 
     
     if (!etapa || !descripcion.trim()) return;
 
+    const analisis = analizarFriccion(descripcion.trim());
+    
     const nuevaFriccion: Friccion = {
       id: crypto.randomUUID(),
       etapa: etapa as Friccion["etapa"],
       descripcion: descripcion.trim(),
+      ...analisis
     };
 
     onAddFriccion(nuevaFriccion);
