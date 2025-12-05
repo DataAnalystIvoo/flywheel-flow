@@ -1,8 +1,9 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { AlertCircle, Lightbulb, Tag, AlertTriangle } from "lucide-react";
+import { AlertCircle, Lightbulb, Tag, AlertTriangle, TrendingUp, Wrench } from "lucide-react";
 import { Friccion, ETAPAS_FLYWHEEL } from "@/types/friccion";
 import { getTipoAmigable } from "@/utils/analizadorFricciones";
+import { getImpactoLabel, getDificultadLabel } from "@/utils/priorizadorFricciones";
 
 interface FriccionesListProps {
   fricciones: Friccion[];
@@ -28,11 +29,29 @@ const getPrioridadColor = (prioridad?: Friccion["prioridad"]) => {
   return colors[prioridad || "media"];
 };
 
+const getImpactoColor = (impacto?: string) => {
+  const colors: Record<string, string> = {
+    alto: "text-green-600",
+    medio: "text-yellow-600",
+    bajo: "text-muted-foreground",
+  };
+  return colors[impacto || "bajo"];
+};
+
+const getDificultadColor = (dificultad?: string) => {
+  const colors: Record<string, string> = {
+    baja: "text-green-600",
+    media: "text-yellow-600",
+    alta: "text-red-600",
+  };
+  return colors[dificultad || "media"];
+};
+
 const getPrioridadLabel = (prioridad?: Friccion["prioridad"]) => {
   const labels: Record<string, string> = {
-    alta: "Prioridad alta",
-    media: "Prioridad media",
-    baja: "Prioridad baja",
+    alta: "Alta",
+    media: "Media",
+    baja: "Baja",
   };
   return labels[prioridad || "media"];
 };
@@ -63,7 +82,7 @@ const FriccionesList = ({ fricciones }: FriccionesListProps) => {
           {fricciones.length} fricción{fricciones.length !== 1 ? "es" : ""} detectada{fricciones.length !== 1 ? "s" : ""}
         </h3>
         <p className="text-xs text-muted-foreground/70">
-          La herramienta analiza automáticamente tu descripción y te sugiere acciones para mejorar tu Flywheel.
+          La herramienta organiza automáticamente las fricciones según el impacto que tendrían en tu negocio y la dificultad de resolverlas.
         </p>
       </div>
       
@@ -84,20 +103,39 @@ const FriccionesList = ({ fricciones }: FriccionesListProps) => {
                 </p>
               </div>
 
-              {/* Tipo y prioridad */}
-              <div className="flex flex-wrap items-center gap-2">
-                {friccion.tipo && (
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-md">
-                    <Tag className="w-3 h-3" />
-                    <span>{getTipoAmigable(friccion.tipo)}</span>
+              {/* Tipo detectado */}
+              {friccion.tipo && (
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-md w-fit">
+                  <Tag className="w-3 h-3" />
+                  <span>{getTipoAmigable(friccion.tipo)}</span>
+                </div>
+              )}
+
+              {/* Barra de priorización */}
+              <div className="bg-muted/30 rounded-lg p-3 space-y-2">
+                <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground mb-2">
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                  <span>Priorización automática</span>
+                </div>
+                <div className="flex flex-wrap items-center gap-3 text-xs">
+                  <div className="flex items-center gap-1.5">
+                    <TrendingUp className={`w-3.5 h-3.5 ${getImpactoColor(friccion.metadata?.impacto_estimado)}`} />
+                    <span className={getImpactoColor(friccion.metadata?.impacto_estimado)}>
+                      {getImpactoLabel(friccion.metadata?.impacto_estimado)}
+                    </span>
                   </div>
-                )}
-                {friccion.prioridad && (
+                  <span className="text-muted-foreground/40">•</span>
+                  <div className="flex items-center gap-1.5">
+                    <Wrench className={`w-3.5 h-3.5 ${getDificultadColor(friccion.metadata?.dificultad)}`} />
+                    <span className={getDificultadColor(friccion.metadata?.dificultad)}>
+                      {getDificultadLabel(friccion.metadata?.dificultad)}
+                    </span>
+                  </div>
+                  <span className="text-muted-foreground/40">•</span>
                   <Badge variant="outline" className={`${getPrioridadColor(friccion.prioridad)} text-xs`}>
-                    <AlertTriangle className="w-3 h-3 mr-1" />
-                    {getPrioridadLabel(friccion.prioridad)}
+                    Prioridad {getPrioridadLabel(friccion.prioridad)}
                   </Badge>
-                )}
+                </div>
               </div>
 
               {/* Sugerencias */}

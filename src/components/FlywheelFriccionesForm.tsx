@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus } from "lucide-react";
 import { Friccion, ETAPAS_FLYWHEEL } from "@/types/friccion";
 import { analizarFriccion } from "@/utils/analizadorFricciones";
+import { priorizarFriccion } from "@/utils/priorizadorFricciones";
 
 interface FlywheelFriccionesFormProps {
   onAddFriccion: (friccion: Friccion) => void;
@@ -29,7 +30,18 @@ const FlywheelFriccionesForm = ({ onAddFriccion }: FlywheelFriccionesFormProps) 
       ...analisis
     };
 
-    onAddFriccion(nuevaFriccion);
+    const priorizacion = priorizarFriccion(nuevaFriccion);
+
+    const friccionFinal: Friccion = {
+      ...nuevaFriccion,
+      metadata: {
+        impacto_estimado: priorizacion.metadata?.impacto_estimado,
+        dificultad: priorizacion.metadata?.dificultad,
+      },
+      prioridad: priorizacion.prioridad,
+    };
+
+    onAddFriccion(friccionFinal);
     setEtapa("");
     setDescripcion("");
   };
